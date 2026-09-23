@@ -1,0 +1,200 @@
+package com.mycompany.mp2jian;
+
+import java.util.Scanner;
+
+class BankAccount 
+{
+    private final String accountNumber;
+    private final String ownerName;
+    private double balance;
+
+    private static int totalAccountsCreated = 0;
+
+    public BankAccount(String accountNumber, String ownerName, double initialBalance) 
+    {
+        this.accountNumber = accountNumber;
+        this.ownerName = ownerName;
+        this.balance = initialBalance;
+        totalAccountsCreated++;
+    }
+
+    // Getters
+    public String getAccountNumber() 
+    {
+        return accountNumber;
+    }
+
+    public String getOwnerName() 
+    {
+        return ownerName;
+    }
+
+    public double getBalance() 
+    {
+        return balance;
+    }
+
+    public static int getTotalAccountsCreated() 
+    {
+        return totalAccountsCreated;
+    }
+
+    // Behavior method: Deposit
+    public boolean deposit(double amount) 
+    {
+        if (amount > 0) 
+        {
+            this.balance += amount;
+            return true;
+        }
+        return false;
+    }
+
+    // Behavior method: Withdraw
+    public boolean withdraw(double amount) 
+    {
+        if (amount > 0 && amount <= this.balance) 
+        {
+            this.balance -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    // Utility method to display account summary
+    public void displayAccountInfo() 
+    {
+        System.out.printf("Account No: %s | Owner: %s | Balance: $%.2f%n", 
+                          accountNumber, ownerName, balance);
+    }
+}
+
+// Main class MUST match your file name and package location expected by Maven
+public class Mp2Jian 
+{
+    public static void main(String[] args) 
+    {
+        // 1. Ask for number of accounts (1 to 5)
+        try (Scanner scanner = new Scanner(System.in)) 
+        {
+            // 1. Ask for number of accounts (1 to 5)
+            int numAccounts = 0;
+            while (numAccounts < 1 || numAccounts > 5) 
+            {
+                System.out.print("Enter number of bank accounts to create (1 - 5): ");
+                if (scanner.hasNextInt()) 
+                {
+                    numAccounts = scanner.nextInt();
+                    if (numAccounts < 1 || numAccounts > 5) 
+                    {
+                        System.out.println("Invalid input. Please enter a number between 1 and 5.");
+                    }
+                } else 
+                {
+                    System.out.println("Invalid input. Please enter an integer.");
+                    scanner.next();
+                }
+            }
+            scanner.nextLine(); 
+            
+            BankAccount[] accounts = new BankAccount[numAccounts];
+            
+            for (int i = 0; i < numAccounts; i++) {
+                System.out.println("\n--- Account " + (i + 1) + " Creation ---");
+                
+                System.out.print("Enter Account Number: ");
+                String accNum = scanner.nextLine().trim();
+                
+                System.out.print("Enter Owner Name: ");
+                String owner = scanner.nextLine().trim();
+                
+                double openingBalance = -1;
+                while (openingBalance < 0) {
+                    System.out.print("Enter Opening Balance (non-negative): ");
+                    if (scanner.hasNextDouble()) {
+                        openingBalance = scanner.nextDouble();
+                        if (openingBalance < 0) {
+                            System.out.println("Opening balance cannot be negative.");
+                        }
+                    } else {
+                        System.out.println("Invalid input. Please enter a valid number.");
+                        scanner.next();
+                    }
+                }
+                scanner.nextLine();
+                
+                accounts[i] = new BankAccount(accNum, owner, openingBalance);
+            }
+            
+            System.out.print("\nEnter number of transactions to process: ");
+            int numTransactions = scanner.nextInt();
+            scanner.nextLine(); 
+            
+            for (int t = 1; t <= numTransactions; t++) 
+            {
+                System.out.println("\n--- Transaction " + t + " ---");
+                System.out.print("Enter Target Account Number: ");
+                String targetAcc = scanner.nextLine().trim();
+                
+                BankAccount foundAccount = null;
+                for (BankAccount acc : accounts) 
+                {
+                    if (acc.getAccountNumber().equalsIgnoreCase(targetAcc)) 
+                    {
+                        foundAccount = acc;
+                        break;
+                    }
+                }
+                
+                if (foundAccount == null) 
+                {
+                    System.out.println("REJECTED: Account number not found.");
+                    continue;
+                }
+                
+                System.out.print("Enter Transaction Type (D for Deposit / W for Withdraw): ");
+                char type = scanner.nextLine().trim().toUpperCase().charAt(0);
+                
+                System.out.print("Enter Amount: ");
+                double amount = scanner.nextDouble();
+                scanner.nextLine();
+
+                switch (type) 
+                {
+                    case 'D' -> 
+                    {
+                        if (foundAccount.deposit(amount)) 
+                        {
+                            System.out.printf("SUCCESS: Deposited $%.2f to Account %s.%n",
+                                    amount, foundAccount.getAccountNumber());
+                        } else 
+                        {
+                            System.out.println("REJECTED: Deposit amount must be positive.");
+                        }
+                    }
+                    case 'W' -> 
+                    {
+                        if (foundAccount.withdraw(amount)) 
+                        {
+                            System.out.printf("SUCCESS: Withdrew $%.2f from Account %s.%n",
+                                    amount, foundAccount.getAccountNumber());
+                        } else 
+                        {
+                            System.out.println("REJECTED: Invalid withdrawal amount or insufficient funds.");
+                        }
+                    }
+                    default -> System.out.println("REJECTED: Invalid transaction type. Use 'D' or 'W'.");
+                }
+            }
+            
+            System.out.println("\n=================================");
+            System.out.println("       FINAL ACCOUNT BALANCES    ");
+            System.out.println("=================================");
+            for (BankAccount acc : accounts) {
+                acc.displayAccountInfo();
+            }
+            
+            System.out.println("\nTotal Bank Accounts Created: " + BankAccount.getTotalAccountsCreated());
+        }
+    }
+}
